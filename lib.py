@@ -56,19 +56,38 @@ def shuffleData(data, lable):
     validation_lable = lable[validation_index]
     return train_data, train_lable, validation_data, validation_lable
 
-def test(data, lable, model):
-    # validation
+# def test(data, lable, model):
+#     # validation
+#     correct = 0
+#     for i in range(len(lable)):
+#         sample = data[i, :].reshape(1, -1)
+#         number = int(model.predict(sample))
+#         #print "number: ", number
+#         #print "lable: ", int(validation_lable[i])
+#         if number == lable[i]:
+#             correct += 1
+#     Correct_rate =  correct / float(len(lable))
+#     #print "Correct rate: ",  Correct_rate
+#     return Correct_rate
+
+# predict number using 0va model
+def number_predict(test, train_data, train_lable_num, alpha_num, b_num, kernel):
+    score_num = np.zeros(10)
+    for i in range(10):
+        score_num[i] = predict(test, train_data, train_lable_num[i], alpha_num[i], b_num[i], kernel)
+    number = int(np.argmax(score_num))
+    return number
+
+# validation error rate
+def validation_correct_rate(validation_data, validation_lable, train_data, train_lable_num, alpha_num, b_num, kernel_gaussian):
     correct = 0
-    for i in range(len(lable)):
-        sample = data[i, :].reshape(1, -1)
-        number = int(model.predict(sample))
-        #print "number: ", number
-        #print "lable: ", int(validation_lable[i])
-        if number == lable[i]:
+    for i in range(len(validation_lable)):
+        number = number_predict(validation_data[i, :], train_data, train_lable_num, alpha_num, b_num, kernel_gaussian)
+#         print "%i sample, number = %i, lable = %i" %(i, number, validation_lable[i])
+        if number == int(validation_lable[i]):
             correct += 1
-    Correct_rate =  correct / float(len(lable))
-    #print "Correct rate: ",  Correct_rate
-    return Correct_rate
+    correct_rate = float(correct) / len(validation_lable)
+    return correct_rate
 
 def SMOtest(validation, validation_lable, data, lable, alpha, b, kernel = kernel_linear):
     # validation

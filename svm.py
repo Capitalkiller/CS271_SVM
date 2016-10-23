@@ -9,7 +9,7 @@ from lib import *
 # max_pass: max times of iterate over alpha without changing
 # X: training data (m, d)
 # Y: training lable (m,)
-def SMO(C, tol, validation_data, validation_lable, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
+def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
     m = len(y) # number of samples
     alpha = np.zeros(m)
     b = 0
@@ -20,8 +20,8 @@ def SMO(C, tol, validation_data, validation_lable, X, y, kernel = kernel_linear,
         ir += 1
         if ir % 1 == 0:
             Trate = SMOtest(X, y, X, y, alpha, b, kernel)
-            Vrate = SMOtest(validation_data, validation_lable, X, y, alpha, b, kernel)
-            print "now ir = %i; Train Correct = %r; Validation Correct = %r" %(ir, Trate, Vrate)
+            # Vrate = SMOtest(validation_data, validation_lable, X, y, alpha, b, kernel)
+            print "now ir = %i; Train Correct = %r; " %(ir, Trate)
         num_changed_alpha = 0
         for i in range(m):
             Error[i] = (alpha * y * kernel(X, X[i])).sum() + b - y[i] # f(xi) - yi
@@ -86,3 +86,18 @@ def SMO(C, tol, validation_data, validation_lable, X, y, kernel = kernel_linear,
 
     return alpha, b
 
+# train 9 0va model to do 0va prediction    
+def train_0va(train_data, train_lable, max_passes=3, kernel=kernel_gaussian, max_iter=3):
+    train_lable_num = []
+    alpha_num = []
+    b_num = []
+    for i in range (10):        
+        lable_one = np.copy(train_lable)
+        lable_one[train_lable == i] = 1
+        lable_one[train_lable != i] = -1    
+        train_lable_num.append(lable_one)
+        print "Now doing number: %i, there is %i of them" %(i, (train_lable == i).sum())
+        alpha_one, b_one = SMO(2, 1e-5,  train_data, lable_one, kernel, max_passes, max_iter)
+        alpha_num.append(alpha_one)
+        b_num.append(b_one)
+    return train_lable_num, alpha_num, b_num
