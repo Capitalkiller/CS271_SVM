@@ -1,5 +1,22 @@
 import numpy as np
 
+
+
+# svm implementation
+# no kernel
+# xi: (m, d)
+# x: (d,)
+# return (m,)
+def kernel_linear(xi, x):
+    inner_product = np.dot(xi, x)
+    inner_product = inner_product.T
+    return inner_product
+
+def predict(test, X, y, alpha, b, kernel = kernel_linear):
+    value = (alpha * y * kernel(X, test)).sum() + b
+    y = np.round(value)
+    return y
+
 # load train data
 def load_train():
     train = np.loadtxt("./data/pendigits-train.csv",delimiter=',')
@@ -44,6 +61,24 @@ def test(data, lable, model):
         #print "number: ", number
         #print "lable: ", int(validation_lable[i])
         if number == lable[i]:
+            correct += 1
+    Correct_rate =  correct / float(len(lable))
+    #print "Correct rate: ",  Correct_rate
+    return Correct_rate
+
+def SMOtest(data, lable, alpha, b):
+    # validation
+    correct = 0
+    for i in range(len(lable)):
+        sample = data[i, :]
+        pre = predict(sample, data, lable, alpha, b)
+        if pre < 0:
+            pre = -1
+        else:
+            pre = 1
+        #print "number: ", number
+        #print "lable: ", int(validation_lable[i])
+        if pre == lable[i]:
             correct += 1
     Correct_rate =  correct / float(len(lable))
     #print "Correct rate: ",  Correct_rate
