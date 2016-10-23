@@ -9,7 +9,7 @@ from lib import *
 # max_pass: max times of iterate over alpha without changing
 # X: training data (m, d)
 # Y: training lable (m,)
-def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
+def SMO(C, tol, validation_data, validation_lable, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
     m = len(y) # number of samples
     alpha = np.zeros(m)
     b = 0
@@ -18,13 +18,14 @@ def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
     Error = np.zeros(m)    
     while passes < max_passes and ir < max_iter:
         ir += 1
-        if ir % 10 == 0:
-            rate = SMOtest(X, y, alpha, b, kernel)
-            print "now ir = %i; Train Correct = %r" %(ir, rate)
+        if ir % 1 == 0:
+            Trate = SMOtest(X, y, X, y, alpha, b, kernel)
+            Vrate = SMOtest(validation_data, validation_lable, X, y, alpha, b, kernel)
+            print "now ir = %i; Train Correct = %r; Validation Correct = %r" %(ir, Trate, Vrate)
         num_changed_alpha = 0
         for i in range(m):
             Error[i] = (alpha * y * kernel(X, X[i])).sum() + b - y[i] # f(xi) - yi
-            if(((y[i] * Error[i] < -tol) and (alpha[i] < C) or (y[i] * Error[i] > tol) and (alpha[i] > 0))):
+            if(((y[i] * Error[i] < -tol) and (alpha[i] < C)) or ((y[i] * Error[i] > tol) and (alpha[i] > 0))):
 
                 j = np.random.randint(0, m)
                 while j == i:

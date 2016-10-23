@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 
@@ -13,7 +14,7 @@ def kernel_linear(xi, x):
     # print inner_product.shape
     return inner_product
 
-def kernel_gaussian(xi, x, sigma = 10):
+def kernel_gaussian(xi, x, sigma = 40):
     # print "xi",xi.shape
     # print "x",x.shape
     if len(xi) == len(x):
@@ -42,14 +43,7 @@ def load_test():
     print test.shape
     return
 
-# visualize data
-# e.g. visualize(train_data[1266, :], train_lable[1266])
-def visualize(data, lable = None):
-    data_x = data[::2]
-    data_y = data[1::2]
-    plt.plot(data_x, data_y)
-    if lable != None:
-        print "Number is : ", lable
+
 
 def shuffleData(data, lable):
     data_index = np.arange(len(data))
@@ -76,20 +70,20 @@ def test(data, lable, model):
     #print "Correct rate: ",  Correct_rate
     return Correct_rate
 
-def SMOtest(data, lable, alpha, b, kernel = kernel_linear):
+def SMOtest(validation, validation_lable, data, lable, alpha, b, kernel = kernel_linear):
     # validation
     correct = 0
-    for i in range(len(lable)):
-        sample = data[i, :]
-        pre = predict(sample, data, lable, alpha, b)
+    for i in range(len(validation_lable)):
+        sample = validation[i, :]
+        pre = predict(sample, data, lable, alpha, b, kernel)
         if pre < 0:
             pre = -1
         else:
             pre = 1
         #print "number: ", number
         #print "lable: ", int(validation_lable[i])
-        if pre == lable[i]:
+        if pre == validation_lable[i]:
             correct += 1
-    Correct_rate =  correct / float(len(lable))
+    Correct_rate =  correct / float(len(validation_lable))
     #print "Correct rate: ",  Correct_rate
     return Correct_rate
