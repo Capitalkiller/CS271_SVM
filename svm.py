@@ -19,7 +19,7 @@ def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
     while passes < max_passes and ir < max_iter:
         ir += 1
         if ir % 10 == 0:
-            rate = SMOtest(X, y, alpha, b)
+            rate = SMOtest(X, y, alpha, b, kernel)
             print "now ir = %i; Train Correct = %r" %(ir, rate)
         num_changed_alpha = 0
         for i in range(m):

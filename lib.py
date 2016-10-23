@@ -10,7 +10,17 @@ import numpy as np
 def kernel_linear(xi, x):
     inner_product = np.dot(xi, x)
     inner_product = inner_product.T
+    # print inner_product.shape
     return inner_product
+
+def kernel_gaussian(xi, x, sigma = 10):
+    # print "xi",xi.shape
+    # print "x",x.shape
+    if len(xi) == len(x):
+        similarity = np.exp(-np.linalg.norm(xi - x)**2/(2*sigma**2))
+    else:
+        similarity = np.exp(-np.linalg.norm((xi - x), axis=1)**2/(2*sigma**2))
+    return similarity
 
 def predict(test, X, y, alpha, b, kernel = kernel_linear):
     value = (alpha * y * kernel(X, test)).sum() + b
@@ -66,7 +76,7 @@ def test(data, lable, model):
     #print "Correct rate: ",  Correct_rate
     return Correct_rate
 
-def SMOtest(data, lable, alpha, b):
+def SMOtest(data, lable, alpha, b, kernel = kernel_linear):
     # validation
     correct = 0
     for i in range(len(lable)):
