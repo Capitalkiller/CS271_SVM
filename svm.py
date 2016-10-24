@@ -1,6 +1,6 @@
 import numpy as np
 from lib import *
-
+from functools import partial
 
 
 # C: regularization parameter
@@ -9,7 +9,7 @@ from lib import *
 # max_pass: max times of iterate over alpha without changing
 # X: training data (m, d)
 # Y: training lable (m,)
-def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
+def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter = 10):
     m = len(y) # number of samples
     alpha = np.zeros(m)
     b = 0
@@ -101,3 +101,30 @@ def train_0va(train_data, train_lable, max_passes=3, kernel=kernel_gaussian, max
         alpha_num.append(alpha_one)
         b_num.append(b_one)
     return train_lable_num, alpha_num, b_num
+
+def crossvalidation(c_lb,c_ub,d_lb,d_ub,train_data, train_lable, validation_data, validation_lable):
+    hyperpara_pairs = np.mgrid[c_lb:c_ub:1, d_lb:d_ub:1].reshape(2,-1).T
+# validation process to find optimized c and d
+    correct_rate_max = 0
+    num_pairs = len(hyperpara_pairs)
+    for i in np.arange(num_pairs):
+        ci = hyperpara_pairs[i][0] 
+        di = hyperpara_pairs[i][1]
+        # training with polynominal kernal
+        kernel_poly = partial(kernel_polynomial, c = ci,d = di)
+        train_lable_num, alpha_num,b_num = train_0va(train_data, train_lable, max_passes=3, 
+                                                    kernel=kernel_poly, max_iter=3)
+        # predict the correction
+        correct_rate = validation_correct_rate(validation_data, validation_lable, 
+            train_data, train_lable_num, alpha_num, b_num, kernel_poly)
+        print i, "/", num_pairs, "correction rate is ", correct_rate 
+        # judege the best one?
+        if correct_rate > correct_rate_max:
+            correct_rate_max = correct_rate
+            c_best = ci
+            d_best = di
+
+    print "The best correct rate is ", correct_rate_max
+    print "The hyperpameter are c = ", c_best, "d = ", d_best
+
+    return correct_rate_max, c_best, d_best
