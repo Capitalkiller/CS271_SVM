@@ -18,10 +18,10 @@ def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter = 10):
     Error = np.zeros(m)    
     while passes < max_passes and ir < max_iter:
         ir += 1
-        if ir % 1 == 0:
-            Trate = SMOtest(X, y, X, y, alpha, b, kernel)
+        # if ir % 1 == 0:
+            # Trate = SMOtest(X, y, X, y, alpha, b, kernel)
             # Vrate = SMOtest(validation_data, validation_lable, X, y, alpha, b, kernel)
-            print "now ir = %i; Train Correct = %r; " %(ir, Trate)
+            # print "now ir = %i; Train Correct = %r; " %(ir, Trate)
         num_changed_alpha = 0
         for i in range(m):
             Error[i] = (alpha * y * kernel(X, X[i])).sum() + b - y[i] # f(xi) - yi
@@ -96,7 +96,7 @@ def train_0va(train_data, train_lable, max_passes=3, kernel=kernel_gaussian, max
         lable_one[train_lable == i] = 1
         lable_one[train_lable != i] = -1    
         train_lable_num.append(lable_one)
-        print "Now doing number: %i, there is %i of them" %(i, (train_lable == i).sum())
+        # print "Now doing number: %i, there is %i of them" %(i, (train_lable == i).sum())
         alpha_one, b_one = SMO(2, 1e-5,  train_data, lable_one, kernel, max_passes, max_iter)
         alpha_num.append(alpha_one)
         b_num.append(b_one)
