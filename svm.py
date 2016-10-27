@@ -9,19 +9,23 @@ from lib import *
 # max_pass: max times of iterate over alpha without changing
 # X: training data (m, d)
 # Y: training lable (m,)
-def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
+def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100, validation_data = None, validation_lable = None):
     m = len(y) # number of samples
     alpha = np.zeros(m)
     b = 0
     passes = 0
     ir = 0
-    Error = np.zeros(m)    
+    Error = np.zeros(m)   
+
     while passes < max_passes and ir < max_iter:
         ir += 1
         if ir % 1 == 0:
             Trate = SMOtest(X, y, X, y, alpha, b, kernel)
-            # Vrate = SMOtest(validation_data, validation_lable, X, y, alpha, b, kernel)
             print "now ir = %i; Train Correct = %r; " %(ir, Trate)
+            if validation_lable != None:
+                Vrate = SMOtest(validation_data, validation_lable, X, y, alpha, b, kernel)
+                print "validation Correct = %r; " %(Vrate)
+
         num_changed_alpha = 0
         for i in range(m):
             Error[i] = (alpha * y * kernel(X, X[i])).sum() + b - y[i] # f(xi) - yi
@@ -87,17 +91,52 @@ def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100):
     return alpha, b
 
 # train 9 0va model to do 0va prediction    
-def train_0va(train_data, train_lable, max_passes=3, kernel=kernel_gaussian, max_iter=3):
+def train_0va(train_data, train_lable, max_passes=3, kernel=kernel_gaussian, max_iter=3, validation_data = None, validation_lable = None):
     train_lable_num = []
     alpha_num = []
     b_num = []
+    validation_lable_num = []
+    validation_lable_one = None
     for i in range (10):        
         lable_one = np.copy(train_lable)
         lable_one[train_lable == i] = 1
         lable_one[train_lable != i] = -1    
         train_lable_num.append(lable_one)
+        if validation_lable != None:            
+            validation_lable_one = np.copy(validation_lable)
+            validation_lable_one[validation_lable == i] = 1
+            validation_lable_one[validation_lable != i] = -1    
+            validation_lable_num.append(validation_lable_one)
+
         print "Now doing number: %i, there is %i of them" %(i, (train_lable == i).sum())
-        alpha_one, b_one = SMO(2, 1e-5,  train_data, lable_one, kernel, max_passes, max_iter)
+        alpha_one, b_one = SMO(2, 1e-5,  train_data, lable_one, kernel, max_passes, max_iter, validation_data =validation_data, validation_lable = validation_lable_one )
         alpha_num.append(alpha_one)
         b_num.append(b_one)
     return train_lable_num, alpha_num, b_num
+
+def crossvalidation(c_lb,c_ub,d_lb,d_ub,train_data, train_lable, validation_data, validation_lable):
+    hyperpara_pairs = np.mgrid[c_lb:c_ub:1, d_lb:d_ub:1].reshape(2,-1).T
+# validation process to find optimized c and d
+    correct_rate_max = 0
+    num_pairs = len(hyperpara_pairs)
+    for i in np.arange(num_pairs):
+        ci = hyperpara_pairs[i][0] 
+        di = hyperpara_pairs[i][1]
+        # training with polynominal kernal
+        kernel_poly = partial(kernel_polynomial, c = ci,d = di)
+        train_lable_num, alpha_num,b_num = train_0va(train_data, train_lable, max_passes=3, kernel=kernel_poly, max_iter=3, 
+            validation_data =validation_data, validation_lable = validation_lable)
+        # predict the correction
+        correct_rate = validation_correct_rate(validation_data, validation_lable, 
+            train_data, train_lable_num, alpha_num, b_num, kernel_poly)
+        print i, "/", num_pairs, "correction rate is ", correct_rate 
+        # judege the best one?
+        if correct_rate > correct_rate_max:
+            correct_rate_max = correct_rate
+            c_best = ci
+            d_best = di
+
+    print "The best correct rate is ", correct_rate_max
+    print "The hyperpameter are c = ", c_best, "d = ", d_best
+
+    return correct_rate_max, c_best, d_best

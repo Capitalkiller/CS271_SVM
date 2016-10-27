@@ -23,6 +23,12 @@ def kernel_gaussian(xi, x, sigma = 40):
         similarity = np.exp(-np.linalg.norm((xi - x), axis=1)**2/(2*sigma**2))
     return similarity
 
+def kernel_polynomial(xi, x, d = 15, c = 18):
+    phi_xz = (np.dot(xi,x) + c)**d
+    phi_xz = phi_xz.T
+
+    return phi_xz
+
 def predict(test, X, y, alpha, b, kernel = kernel_linear):
     value = (alpha * y * kernel(X, test)).sum() + b
     y = np.round(value)
