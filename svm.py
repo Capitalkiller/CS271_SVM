@@ -21,10 +21,11 @@ def SMO(C, tol, X, y, kernel = kernel_linear, max_passes=3, max_iter =100, valid
         ir += 1
         if ir % 1 == 0:
             Trate = SMOtest(X, y, X, y, alpha, b, kernel)
-            print "now ir = %i; Train Correct = %r; " %(ir, Trate)
             if validation_lable != None:
                 Vrate = SMOtest(validation_data, validation_lable, X, y, alpha, b, kernel)
-                print "validation Correct = %r; " %(Vrate)
+                print "now ir = %i; Train Correct = %r, validation Correct = %r; " %(ir, Trate, Vrate)
+            else:
+                print "now ir = %i; Train Correct = %r; " %(ir, Trate)
 
         num_changed_alpha = 0
         for i in range(m):
