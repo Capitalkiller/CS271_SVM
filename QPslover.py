@@ -25,7 +25,7 @@ def QP_Slover_transfer(train_data, train_lable, w_previous, epsilon):
     cons = ({'type': 'ineq',
      'fun' : lambda x: train_lable * (np.dot(x[:16], train_data.T) + x[16]) - 1},
 	{'type': 'ineq',
-     'fun' : lambda x: np.linalg.norm(w_previous - x[:16]) - epsilon})
+     'fun' : lambda x: -(np.linalg.norm(w_previous - x[:16]) - epsilon)})
     # initialize W
     w_init = np.random.rand(17)
     # optimization
