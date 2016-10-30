@@ -1,5 +1,6 @@
 import numpy as np
 from lib import *
+from scipy.optimize import minimize
 
 
 
@@ -115,6 +116,44 @@ def train_0va(train_data, train_lable, max_passes=3, kernel=kernel_gaussian, max
         b_num.append(b_one)
     return train_lable_num, alpha_num, b_num
 
+def QP_Slover(train_data, train_lable):
+    # maxmize W(a)
+    def max_w(x):
+        return  np.linalg.norm(x[:16])
+    # constrains:
+    cons = ({'type': 'ineq',
+     'fun' : lambda x: train_lable * (np.dot(x[:16], train_data.T) + x[16]) - 1})
+    # initialize W
+    w_init = np.random.rand(17)
+    # optimization
+    res = minimize(max_w, w_init , method='SLSQP', constraints=cons, options={'disp': True})
+    w_pre = res.x[:16]
+    b_pre = res.x[16]
+    return w_pre, b_pre
+
+def QP_Slover_transfer(train_data, train_lable, w_previous, epsilon):
+    # maxmize W(a)
+    def max_w(x):
+        return  np.linalg.norm(x[:16])
+    # constrains:
+    cons = ({'type': 'ineq',
+     'fun' : lambda x: train_lable * (np.dot(x[:16], train_data.T) + x[16]) - 1},
+    {'type': 'ineq',
+     'fun' : lambda x: -(np.linalg.norm(w_previous - x[:16]) - epsilon)})
+    # initialize W
+    w_init = np.random.rand(17)
+    # optimization
+    res = minimize(max_w, w_init , method='SLSQP', constraints=cons, options={'disp': True})
+    w_pre = res.x[:16]
+    b_pre = res.x[16]
+    return w_pre, b_pre
+
+def prediction_QP(w, b, test_data):
+    pre_validation = np.dot(w, test_data.T) + b
+    pre_validation[pre_validation >= 0] =1
+    pre_validation[pre_validation <0 ] = -1
+    return pre_validation
+    
 def crossvalidation(c_lb,c_ub,d_lb,d_ub,train_data, train_lable, validation_data, validation_lable):
     hyperpara_pairs = np.mgrid[c_lb:c_ub:1, d_lb:d_ub:1].reshape(2,-1).T
 # validation process to find optimized c and d
