@@ -112,7 +112,6 @@ def SMOtest(validation, validation_lable, data, lable, alpha, b, kernel = kernel
     for i in range(len(validation_lable)):
         sample = validation[i, :]
         pre = predict(sample, data, lable, alpha, b, kernel)
-
         #print "number: ", number
         #print "lable: ", int(validation_lable[i])
         if pre == validation_lable[i]:

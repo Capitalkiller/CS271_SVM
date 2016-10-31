@@ -148,12 +148,56 @@ def QP_Slover_transfer(train_data, train_lable, w_previous, epsilon):
     b_pre = res.x[16]
     return w_pre, b_pre
 
+def QP_Slover_oneclass(train_data, train_lable, kernel, vl):
+    # maxmize W(a)
+    def max_w(x):
+        length = len(train_data)
+        sumall = 0
+        for i in range(length):
+            for j in range(length):
+                sumall += 0.5 * x[i] * x[j] * kernel(train_data[i,:], train_data[j, :])
+        return  sumall
+    # constrains:
+    cons = ({'type': 'ineq','fun' : lambda x: x},
+        {'type': 'ineq','fun' : lambda x: -(x - (1 / vl))},
+        {'type': 'eq','fun' : lambda x: np.sum(x) - 1})
+    # initialize W
+    x_init = np.random.rand(len(train_data))
+    # optimization
+    res = minimize(max_w, x_init , method='SLSQP', constraints=cons, options={'disp': True})
+    alpha = res.x
+    return alpha
+
+def findrho(alpha, vl, train, kernel):
+    alphaLessThanC = alpha[alpha < 1/vl]
+    rhoindexlist = np.where(alphaLessThanC > 0)
+    rhoindex = rhoindexlist[0][0]
+    rho = 0
+    for j in range(len(train)):
+        rho += alpha[j] * kernel(train[rhoindex, :], train[j, :])
+    return rho
+
+def predict_oneclass(test, train, alpha,rho, kernel):
+    result_lable = np.zeros(len(test))
+    for i in range(len(test)):
+        fx = 0
+        for j in range(len(train)):
+            fx += alpha[j] * kernel(test[i, :], train[j, :])
+        fx -= rho
+        if fx > 0:
+            fx = 1
+        else:
+            fx = -1
+        result_lable[i] = fx
+    return result_lable
+    
+
 def prediction_QP(w, b, test_data):
     pre_validation = np.dot(w, test_data.T) + b
     pre_validation[pre_validation >= 0] =1
     pre_validation[pre_validation <0 ] = -1
     return pre_validation
-    
+
 def crossvalidation(c_lb,c_ub,d_lb,d_ub,train_data, train_lable, validation_data, validation_lable):
     hyperpara_pairs = np.mgrid[c_lb:c_ub:1, d_lb:d_ub:1].reshape(2,-1).T
 # validation process to find optimized c and d
